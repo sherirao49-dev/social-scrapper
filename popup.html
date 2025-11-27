@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    /* This makes the popup look nice */
+    body { width: 320px; padding: 15px; font-family: sans-serif; }
+    h3 { margin-top: 0; text-align: center;}
+    input { width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box;}
+    button { width: 100%; padding: 10px; background-color: #007bff; color: white; border: none; cursor: pointer; border-radius: 4px;}
+    button:hover { background-color: #0056b3; }
+    #status { margin-top: 10px; font-size: 13px; color: #555; text-align: center; }
+  </style>
+</head>
+<body>
+  <h3>Social Scraper</h3>
+  
+  <label>Enter Profile URL:</label>
+  <input type="text" id="profileUrl" placeholder="e.g. https://x.com/username">
+  
+  <button id="scrapeBtn">Scrape Recent Posts</button>
+  
+  <div id="status"></div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
