@@ -1,25 +1,107 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8">
   <style>
-    /* This makes the popup look nice */
-    body { width: 320px; padding: 15px; font-family: sans-serif; }
-    h3 { margin-top: 0; text-align: center;}
-    input { width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box;}
-    button { width: 100%; padding: 10px; background-color: #007bff; color: white; border: none; cursor: pointer; border-radius: 4px;}
-    button:hover { background-color: #0056b3; }
-    #status { margin-top: 10px; font-size: 13px; color: #555; text-align: center; }
+    body {
+      width: 350px;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f6f8;
+    }
+    
+    .header {
+      background-color: #1da1f2; /* Twitter Blue */
+      color: white;
+      padding: 15px;
+      text-align: center;
+    }
+    
+    .header h2 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .container {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    label {
+      font-size: 14px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-sizing: border-box;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+
+    input:focus {
+      border-color: #1da1f2;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #222;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    button:hover {
+      background-color: #000;
+    }
+
+    #status {
+      margin-top: 10px;
+      font-size: 12px;
+      text-align: center;
+      color: #666;
+      min-height: 20px;
+    }
+
+    .footer {
+      text-align: center;
+      font-size: 11px;
+      color: #aaa;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
-  <h3>Social Scraper</h3>
-  
-  <label>Enter Profile URL:</label>
-  <input type="text" id="profileUrl" placeholder="e.g. https://x.com/username">
-  
-  <button id="scrapeBtn">Scrape Recent Posts</button>
-  
-  <div id="status"></div>
+
+  <div class="header">
+    <h2>Social Data Scraper</h2>
+  </div>
+
+  <div class="container">
+    <div>
+      <label>Profile URL</label>
+      <input type="text" id="profileUrl" placeholder="Paste Twitter or Reddit link here...">
+    </div>
+
+    <button id="scrapeBtn">Start Scraping</button>
+    
+    <div id="status">Ready to scrape.</div>
+
+    <div class="footer">v1.2 • Auto-Scroll Enabled</div>
+  </div>
 
   <script src="popup.js"></script>
 </body>

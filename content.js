@@ -1,76 +1,96 @@
-console.log("Social Scraper: Script loaded!");
+console.log("Social Scraper: Slow-Internet Mode Loaded");
 
-// Wait 5 seconds for the page to load fully
-setTimeout(scrapeData, 5000);
+// Wait 5 seconds for the page to open completely
+setTimeout(startSmartScrape, 5000);
 
-function scrapeData() {
-    const currentUrl = window.location.href;
-    let scrapedPosts = [];
+let uniquePosts = new Map();
 
-    // --- TWITTER (X) LOGIC ---
-    if (currentUrl.includes("twitter.com") || currentUrl.includes("x.com")) {
-        console.log("Scraping X...");
-        const tweets = document.querySelectorAll('article[data-testid="tweet"]');
-        
-        tweets.forEach((tweet, index) => {
-            if (index >= 20) return; // Limit to 20 posts
-
-            // Get Text and clean it (remove new lines so Excel doesn't break)
-            const textEl = tweet.querySelector('div[data-testid="tweetText"]');
-            const text = textEl ? textEl.innerText.replace(/(\r\n|\n|\r)/gm, " ") : "Media Only"; 
-            
-            // Get Time
-            const timeEl = tweet.querySelector('time');
-            const time = timeEl ? timeEl.getAttribute('datetime') : "Unknown";
-
-            scrapedPosts.push({ Source: "Twitter", Post: text, Time: time });
-        });
-    } 
+async function startSmartScrape() {
+    const isTwitter = window.location.href.includes("twitter.com") || window.location.href.includes("x.com");
+    const isReddit = window.location.href.includes("reddit.com");
     
-    // --- REDDIT LOGIC ---
-    else if (currentUrl.includes("reddit.com")) {
-        console.log("Scraping Reddit...");
-        const posts = document.querySelectorAll('shreddit-post');
+    console.log("Starting Scrape...");
+
+    let attempts = 0;
+    // Keep going until we have 20 posts OR we have tried 20 times
+    while (uniquePosts.size < 20 && attempts < 20) {
         
-        posts.forEach((post, index) => {
-             if (index >= 20) return;
+        // 1. Grab what is currently on screen
+        if (isTwitter) {
+            scrapeTwitterChunk();
+        } else if (isReddit) {
+            scrapeRedditChunk();
+        }
 
-             const title = post.getAttribute('post-title').replace(/,/g, ""); // Remove commas
-             const author = post.getAttribute('author');
-
-             scrapedPosts.push({ Source: "Reddit", Post: title, Author: author });
-        });
+        console.log(`Collected ${uniquePosts.size} posts... Scrolling down...`);
+        
+        // 2. Scroll to the very bottom of the page (Forces new tweets to load)
+        window.scrollTo(0, document.body.scrollHeight);
+        
+        // 3. WAIT 4 SECONDS (Important for slow loading)
+        await new Promise(r => setTimeout(r, 4000));
+        
+        attempts++;
     }
 
-    // --- DOWNLOAD THE FILE ---
-    if (scrapedPosts.length > 0) {
-        downloadCSV(scrapedPosts); 
-    } else {
-        alert("No posts found. Try scrolling down manually and running it again.");
-    }
+    console.log("Finished! Downloading...");
+    downloadCSV();
 }
 
-// Helper function to create the CSV file
-function downloadCSV(data) {
+function scrapeTwitterChunk() {
+    const tweets = document.querySelectorAll('article[data-testid="tweet"]');
+    tweets.forEach((tweet) => {
+        const textEl = tweet.querySelector('div[data-testid="tweetText"]');
+        if (!textEl) return;
+        
+        const text = textEl.innerText.replace(/(\r\n|\n|\r)/gm, " ");
+        const timeEl = tweet.querySelector('time');
+        const time = timeEl ? timeEl.getAttribute('datetime') : "Unknown";
+
+        if (!uniquePosts.has(text)) {
+            uniquePosts.set(text, { Source: "Twitter", Post: text, Time: time });
+        }
+    });
+}
+
+function scrapeRedditChunk() {
+    const posts = document.querySelectorAll('shreddit-post');
+    posts.forEach((post) => {
+         const title = post.getAttribute('post-title');
+         if (!title) return;
+
+         const cleanTitle = title.replace(/,/g, ""); 
+         const author = post.getAttribute('author');
+
+         if (!uniquePosts.has(cleanTitle)) {
+             uniquePosts.set(cleanTitle, { Source: "Reddit", Post: cleanTitle, Author: author });
+         }
+    });
+}
+
+function downloadCSV() {
+    if (uniquePosts.size === 0) {
+        alert("No posts found. Please check your connection.");
+        return;
+    }
+
     let csvContent = "data:text/csv;charset=utf-8,";
-    
-    // Header
     csvContent += "Source,Post Content,Time/Author\n";
 
-    // Rows
-    data.forEach(row => {
+    uniquePosts.forEach((row) => {
         let extraInfo = row.Time || row.Author || "N/A";
-        // Clean quotes so Excel reads it correctly
         let cleanText = row.Post.replace(/"/g, '""'); 
         let rowString = `${row.Source},"${cleanText}",${extraInfo}`;
         csvContent += rowString + "\n";
     });
 
-    // Trigger Download
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "social_media_data.csv");
+    // Added a random number to filename so you know which one is new
+    link.setAttribute("download", `social_data_${Math.floor(Math.random() * 100)}.csv`);
     document.body.appendChild(link);
     link.click();
+    
+    alert(`Success! Downloaded ${uniquePosts.size} posts.`);
 }
